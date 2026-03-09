@@ -8,6 +8,8 @@ class Program
 {
     static void Main(string[] args)
     {
+        Console.OutputEncoding = System.Text.Encoding.UTF8;
+
         var inputData = new List<Dictionary<string, string>>
         {
             new Dictionary<string, string> { {"V", "S001"} },
@@ -18,30 +20,26 @@ class Program
             new Dictionary<string, string> { {"V", "S009"} },
             new Dictionary<string, string> { {"VIII", "S007"} }
         };
-        
-        List<string> uniqueValuesList = new List<string>();
 
-        foreach (var dict in inputData)
-        {
-            foreach (var value in dict.Values)
-            {
-                if (!uniqueValuesList.Contains(value))
-                {
-                    uniqueValuesList.Add(value);
-                }
-            }
-        }
-        
-        Console.WriteLine("UniqueValues: {'" + string.Join("', '", uniqueValuesList) + "'}");
+        var uniqueValuesList = inputData
+            .SelectMany(dict => dict.Values)
+            .Distinct()
+            .ToList();
+
+        Console.WriteLine($"Знайдено унікальних значень: {uniqueValuesList.Count}");
         
         var finalDictionary = new Dictionary<string, List<string>>
         {
             { "UniqueValues", uniqueValuesList }
         };
         
-        SaveToJson(finalDictionary, "unique_results.json");
+        string fileName = "unique_results.json";
+        SaveToJson(finalDictionary, fileName);
 
-        Console.WriteLine("\nГотово! Результат збережено у файл 'unique_results.json'.");
+        string fullPath = Path.GetFullPath(fileName);
+        Console.WriteLine($"\nГотово! Файл збережено за шляхом:\n{fullPath}");
+        
+        Console.WriteLine("\nНатисніть будь-яку клавішу для виходу...");
         Console.ReadKey();
     }
 
@@ -49,11 +47,7 @@ class Program
     {
         try
         {
-            var options = new JsonSerializerOptions 
-            { 
-                WriteIndented = true 
-            };
-            
+            var options = new JsonSerializerOptions { WriteIndented = true };
             string jsonString = JsonSerializer.Serialize(data, options);
             File.WriteAllText(fileName, jsonString);
         }
